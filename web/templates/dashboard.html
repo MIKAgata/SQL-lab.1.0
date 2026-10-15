@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Enterprise Gateway{% endblock %}
+
+{% block content %}
+<div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h1 style="font-size: 1.75rem; font-weight: 700;">Dashboard Administrasi</h1>
+            <p style="color: var(--text-secondary);">Selamat datang kembali, <strong>{{ username }}</strong> (Role: {{ role }})</p>
+        </div>
+        <div>
+            <a href="{% url 'products' %}" class="btn btn-primary">&rarr; Buka Katalog Produk</a>
+        </div>
+    </div>
+
+    <!-- Flag 1 Box -->
+    <div class="card" style="border-left: 4px solid var(--accent-green);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span style="background: rgba(16, 185, 129, 0.2); color: var(--accent-green); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                TAHAP 1 SELESAI
+            </span>
+            <h3 style="font-size: 1.15rem; color: #fff;">Autentikasi Berhasil Dilewati</h3>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Anda telah berhasil mengeksploitasi kerentanan SQL Injection pada portal autentikasi. Berikut adalah flag pertama Anda:
+        </p>
+
+        <div class="flag-box">
+            <div class="flag-title">Web Login Flag (Stage 1)</div>
+            <div class="flag-code">{{ web_flag }}</div>
+        </div>
+    </div>
+
+    <!-- Instructions for Stage 2 -->
+    <div class="card">
+        <h3 class="card-title">
+            <span style="color: var(--accent-cyan);">&#9658;</span>
+            Misi Selanjutnya: Tahap 2 — Enumerasi Database
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;">
+            Akses ke dashboard hanyalah langkah awal. Database internal sistem ini menyimpan tabel rahasia yang berisi 
+            <strong>flag database</strong> serta <strong>kredensial sistem Linux</strong>.
+        </p>
+        
+        <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+            <strong>Objektif Tahap 2:</strong>
+            <ul style="margin: 0.5rem 0 0 1.25rem;">
+                <li>Navigasi ke menu <strong>Katalog Produk</strong>.</li>
+                <li>Identifikasi parameter kategori yang berinteraksi langsung dengan database PostgreSQL.</li>
+                <li>Lakukan teknik <code>UNION-based SQL Injection</code> atau enumerasi schema (<code>information_schema.tables</code>).</li>
+                <li>Temukan tabel flag tantangan untuk mendapatkan <strong>Flag 2</strong>.</li>
+                <li>Temukan tabel kredensial untuk memperoleh akun SSH ke sistem target.</li>
+            </ul>
+        </div>
+
+        <a href="{% url 'products' %}" class="btn btn-secondary">
+            Buka Katalog Produk &bull; Mulai Investigasi
+        </a>
+    </div>
+</div>
+{% endblock %}

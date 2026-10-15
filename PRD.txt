@@ -1,0 +1,418 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+SQL INJECTION TO ROOT PRIVILEGE ESCALATION LAB
+Versi: 1.0
+Platform: Docker / Docker Compose
+Tipe: Lab cybersecurity / CTF berbasis web dan Linux
+Target tingkat kesulitan: Pemula hingga menengah
+
+======================================================================
+1. RINGKASAN PROYEK
+======================================================================
+
+Proyek ini adalah lab cybersecurity terisolasi yang melatih siswa mengikuti rangkaian eksploitasi dari aplikasi web hingga memperoleh hak root di dalam container Linux.
+
+Alur utama:
+1. Mengeksploitasi halaman login menggunakan SQL Injection dan mendapatkan Flag 1.
+2. Mengeksplorasi fitur kategori produk untuk menemukan tabel flag dan kredensial di database.
+3. Menggunakan kredensial yang ditemukan untuk login melalui SSH sebagai user Linux biasa.
+4. Melakukan Linux privilege escalation dan membaca flag root.
+5. Administrator tetap memiliki akses root ke container untuk pemeliharaan manual.
+6. Seluruh lab dibangun dan dijalankan menggunakan Docker Compose.
+
+Lab hanya ditujukan untuk lingkungan lokal atau jaringan yang secara khusus dikendalikan oleh penyelenggara. Semua kredensial dan data harus bersifat khusus lab, bukan data sungguhan.
+
+======================================================================
+2. TUJUAN DAN RUANG LINGKUP
+======================================================================
+
+Tujuan:
+- Melatih SQL Injection pada autentikasi.
+- Melatih enumerasi database melalui fitur aplikasi.
+- Memahami bagaimana kredensial yang terekspos dapat digunakan untuk akses SSH.
+- Melatih enumerasi Linux dan privilege escalation.
+- Mengajarkan penggunaan Docker untuk membangun, menjalankan, menguji, dan mereset lab.
+
+Di dalam ruang lingkup:
+- Aplikasi web Django.
+- Database SQL, direkomendasikan PostgreSQL.
+- OpenSSH Server di container Linux.
+- Satu jalur utama privilege escalation.
+- Empat flag tantangan.
+- Akses root administrator melalui Docker.
+- Dokumentasi setup, pengujian, dan reset.
+
+Di luar ruang lingkup:
+- Eksploitasi terhadap sistem atau jaringan pihak ketiga.
+- Penggunaan kredensial nyata.
+- Eksploitasi kernel.
+- Akses root ke host Docker.
+- Antarmuka administrasi khusus yang tidak diperlukan untuk tantangan.
+
+======================================================================
+3. ALUR TANTANGAN
+======================================================================
+
+TAHAP 1 — SQL INJECTION LOGIN
+Siswa membuka halaman login dan mengeksploitasi SQL Injection untuk melewati autentikasi. Setelah berhasil masuk, dashboard menampilkan Flag 1 dan tautan menuju kategori produk.
+
+Flag contoh:
+FLAG{SQLI_LOGIN_BYPASS}
+
+TAHAP 2 — ENUMERASI DATABASE MELALUI KATEGORI PRODUK
+Siswa menggunakan fitur kategori produk yang dirancang rentan untuk mengeksplorasi struktur database. Database memiliki tabel produk, tabel flag, dan tabel kredensial. Siswa harus menemukan tabel yang relevan dan mengambil kredensial SSH untuk tahap berikutnya.
+
+Flag contoh:
+FLAG{DATABASE_ENUMERATION}
+
+TAHAP 3 — SSH ACCESS DAN ENUMERASI LINUX
+Siswa menggunakan kredensial khusus lab yang ditemukan di database untuk login SSH sebagai user Linux biasa. User tersebut tidak memiliki hak administrator penuh. Siswa dapat menemukan flag user serta petunjuk untuk tahap privilege escalation.
+
+Flag contoh:
+FLAG{USER_SHELL_ACQUIRED}
+
+TAHAP 4 — PRIVILEGE ESCALATION
+Siswa mengidentifikasi satu kesalahan konfigurasi Linux yang disengaja dan menggunakan jalur tersebut untuk memperoleh root di dalam container. Setelah eskalasi berhasil, siswa dapat membaca flag root.
+
+Flag contoh:
+FLAG{ROOT_COMPROMISED}
+
+Catatan:
+Nilai flag di atas adalah placeholder dan dapat diganti administrator. Jangan menaruh flag root pada lokasi yang dapat dibaca oleh user biasa sebelum privilege escalation berhasil.
+
+======================================================================
+4. SPESIFIKASI FUNGSIONAL
+======================================================================
+
+4.1 Aplikasi Web dan Login
+- Aplikasi menggunakan Django.
+- Terdapat halaman login dengan field username dan password.
+- Login sengaja mengandung kerentanan SQL Injection yang dapat direproduksi.
+- Login yang berhasil membawa siswa ke dashboard.
+- Dashboard menampilkan Flag 1.
+- Dashboard menyediakan navigasi ke kategori produk.
+- Kerentanan harus diuji secara otomatis atau melalui prosedur pengujian yang terdokumentasi.
+- Jangan menggunakan kredensial sungguhan.
+
+4.2 Kategori Produk dan Database
+- Terdapat halaman daftar kategori produk.
+- Siswa dapat membuka daftar produk berdasarkan kategori.
+- Fitur yang dipilih untuk tantangan sengaja rentan terhadap SQL Injection.
+- Database memuat tabel products, categories, challenge_flags, dan system_credentials.
+- Tabel flag dan kredensial tidak ditampilkan secara langsung melalui antarmuka normal.
+- Siswa perlu melakukan enumerasi untuk menemukan tabel dan data yang diperlukan.
+- Kredensial yang ditemukan harus benar-benar cocok dengan akun SSH lab.
+- Data sensitif hanya boleh berupa data dummy khusus lab.
+
+Skema tabel yang disarankan:
+
+Tabel products:
+- id
+- name
+- description
+- price
+- category_id
+
+Tabel categories:
+- id
+- name
+- description
+
+Tabel challenge_flags:
+- id
+- stage
+- flag_value
+
+Tabel system_credentials:
+- id
+- username
+- credential_value
+- purpose
+
+Catatan implementasi:
+- Nama kolom dan struktur akhir boleh disesuaikan selama alur tantangan tetap konsisten.
+- Jangan mengekspos port database ke host secara default.
+- Akses database dilakukan melalui jaringan internal Docker.
+
+4.3 SSH dan User Linux
+- OpenSSH Server berjalan di container target Linux.
+- Terdapat akun Linux biasa bernama student.
+- Kredensial untuk akun tersebut ditemukan pada tahap database.
+- Akun student tidak boleh memiliki hak administrator penuh.
+- User dapat melakukan enumerasi filesystem dan konfigurasi yang relevan.
+- Flag user hanya tersedia sesuai aturan permission tahap user.
+- SSH hanya dipublikasikan pada port yang dikonfigurasi secara eksplisit.
+
+Contoh pola koneksi:
+ssh student@<IP_SERVER> -p <SSH_PORT>
+
+Placeholder IP dan port harus diganti sesuai konfigurasi lab yang sebenarnya.
+
+4.4 Privilege Escalation
+- Sediakan satu jalur utama privilege escalation untuk versi pertama.
+- Jalur harus ramah pemula hingga menengah dan dapat direproduksi.
+- Tidak boleh membutuhkan eksploitasi kernel.
+- Petunjuk harus dapat ditemukan melalui enumerasi sistem yang wajar.
+- Flag root harus terlindungi dari pembacaan oleh user biasa.
+- Setelah berhasil menjadi root di dalam container, siswa dapat membaca flag final.
+
+Mekanisme yang dapat dipilih saat implementasi:
+- SUID binary yang salah konfigurasi.
+- Cron job dengan permission tidak aman.
+- Aturan sudo yang terlalu permisif.
+- PATH hijacking pada program yang berjalan dengan hak istimewa.
+
+Pilih satu mekanisme utama, dokumentasikan penyebab kerentanannya, dan uji bahwa tidak ada jalur yang tidak disengaja.
+
+======================================================================
+5. STRUKTUR PROYEK YANG DIHARAPKAN
+======================================================================
+
+sqli-to-root-lab/
+|-- docker-compose.yml
+|-- .env.example
+|-- .gitignore
+|-- README.md
+|-- Dockerfile
+|-- entrypoint.sh
+|
+|-- web/
+|   |-- manage.py
+|   |-- requirements.txt
+|   |-- config/
+|   |-- accounts/
+|   |-- products/
+|   |-- templates/
+|       |-- login.html
+|       |-- dashboard.html
+|       |-- products.html
+|
+|-- database/
+|   |-- init.sql
+|
+|-- ssh/
+|   |-- sshd_config
+|
+|-- linux/
+|   |-- users.sh
+|   |-- challenge-setup.sh
+|   |-- privesc/
+|
+|-- flags/
+|   |-- web.flag
+|   |-- database.flag
+|   |-- user.flag
+|   |-- root.flag
+|
+|-- docs/
+    |-- architecture.md
+    |-- testing.md
+    |-- reset.md
+
+Struktur ini adalah target desain. Implementasi dapat menyesuaikan struktur internal, tetapi file dan fungsi penting harus tetap terdokumentasi.
+
+======================================================================
+6. ARSITEKTUR DOCKER
+======================================================================
+
+Gunakan Docker Compose.
+
+Layanan yang direkomendasikan:
+1. web
+   - Menjalankan aplikasi Django.
+   - Menyediakan halaman login, dashboard, dan kategori produk.
+   - Berkomunikasi dengan database melalui jaringan internal Docker.
+
+2. db
+   - Menggunakan PostgreSQL.
+   - Menyimpan data produk, kategori, flag, dan kredensial tantangan.
+   - Tidak mempublikasikan port ke host secara default.
+
+3. SSH dan sistem Linux
+   - Untuk versi pertama, OpenSSH Server dan aplikasi web dapat berada di container target yang sama agar alur SSH dan privilege escalation mengarah ke mesin yang sama.
+   - Jika layanan dipisah pada versi mendatang, dokumentasikan dengan jelas pemetaan antara layanan web, database, dan target SSH.
+
+Ketentuan:
+- Publikasikan hanya port yang dibutuhkan untuk akses web dan SSH.
+- Jangan mengaktifkan privileged mode.
+- Jangan memasang Docker socket host ke dalam container.
+- Jangan menjalankan container dengan akses host yang tidak diperlukan.
+- Database harus menggunakan jaringan internal Docker.
+- Semua layanan harus dapat dijalankan dengan docker compose up -d --build.
+
+Catatan:
+Menjalankan Django dan SSH dalam satu container adalah kompromi untuk lab CTF, bukan pola deployment produksi. Isolasi container tetap wajib.
+
+======================================================================
+7. AKSES ADMINISTRATOR DAN KREDENSIAL ROOT
+======================================================================
+
+Administrator harus selalu dapat memperoleh akses root ke container untuk penyesuaian manual, tanpa perlu menyelesaikan tantangan sebagai siswa.
+
+Cara yang disarankan adalah menggunakan akses Docker dari host:
+
+Periksa layanan:
+docker compose ps
+
+Masuk sebagai root ke layanan web:
+docker compose exec -u 0 web /bin/bash
+
+Jika layanan Linux menggunakan nama lab:
+docker compose exec -u 0 lab /bin/bash
+
+Nama layanan harus sesuai dengan docker-compose.yml yang benar-benar dibuat.
+
+Ketentuan keamanan:
+- Akses root administrator melalui Docker harus tetap tersedia ketika container berjalan.
+- Jangan memberikan password root host kepada siswa.
+- Jangan mengaktifkan SSH root dari jaringan siswa.
+- Jika password root Linux di dalam container diperlukan untuk pemeliharaan, atur secara aman dan dokumentasikan penggunaannya.
+- Jangan menyimpan kredensial administrator atau secret asli di repository Git.
+- Akses root dalam container tidak boleh berarti akses root pada host Docker.
+
+======================================================================
+8. KEAMANAN DAN ISOLASI
+======================================================================
+
+- Lab hanya dijalankan pada komputer atau jaringan yang dikendalikan penyelenggara.
+- Semua kredensial dan data adalah data dummy khusus lab.
+- Port web dan SSH harus dikonfigurasi secara eksplisit.
+- Port database tidak dipublikasikan ke host secara default.
+- Container tidak menggunakan privileged: true.
+- Docker socket host tidak boleh di-mount ke container.
+- Hindari mount direktori host sensitif.
+- Flag setiap tahap harus memiliki permission yang sesuai.
+- Kredensial dan secret tidak boleh masuk ke repository.
+- Gunakan .env.example untuk menunjukkan nama variabel konfigurasi tanpa memasukkan secret sungguhan.
+- Sediakan mekanisme reset untuk memulihkan kondisi awal.
+- Jangan mengandalkan Docker sebagai satu-satunya lapisan keamanan.
+- Dokumentasikan bahwa lab rentan dan tidak boleh dipublikasikan ke internet tanpa kontrol akses yang memadai.
+
+======================================================================
+9. FLAG DAN KRITERIA PENEMPATAN
+======================================================================
+
+Empat flag tantangan:
+1. Flag web — muncul setelah login berhasil.
+2. Flag database — ditemukan melalui enumerasi database.
+3. Flag user — tersedia setelah memperoleh akses user Linux yang ditentukan.
+4. Flag root — hanya dapat dibaca setelah privilege escalation berhasil.
+
+Contoh placeholder:
+FLAG{SQLI_LOGIN_BYPASS}
+FLAG{DATABASE_ENUMERATION}
+FLAG{USER_SHELL_ACQUIRED}
+FLAG{ROOT_COMPROMISED}
+
+Administrator boleh mengganti nilai flag melalui file konfigurasi atau file flag yang sesuai. Nilai flag final harus konsisten dengan dokumentasi dan prosedur pengujian.
+
+Jangan menganggap kredensial root administrator sebagai flag atau sebagai bagian dari jalur siswa. Akses administrator dan jalur tantangan harus dipisahkan.
+
+======================================================================
+10. RESET DAN OPERASIONAL
+======================================================================
+
+Perintah operasional dasar:
+
+Menjalankan lab:
+docker compose up -d --build
+
+Melihat status:
+docker compose ps
+
+Melihat log:
+docker compose logs -f
+
+Menghentikan lab:
+docker compose down
+
+Reset penuh harus dijelaskan secara terpisah. Prosedur reset harus:
+1. Menghentikan layanan yang relevan.
+2. Mengembalikan database ke data awal.
+3. Mengembalikan permission dan konfigurasi tantangan.
+4. Mengembalikan file flag ke keadaan awal.
+5. Memastikan kredensial SSH masih cocok dengan database.
+6. Memverifikasi seluruh layanan dapat dimulai kembali.
+
+Jangan menghapus volume secara otomatis ketika hanya menghentikan container. Dokumentasikan dengan jelas jika reset menghapus data persisten.
+
+======================================================================
+11. KRITERIA PENERIMAAN
+======================================================================
+
+A. Aplikasi web
+[ ] Halaman login berjalan.
+[ ] SQL Injection login dapat direproduksi.
+[ ] Login yang berhasil menampilkan flag web.
+[ ] Halaman kategori produk dapat diakses.
+[ ] Fitur kategori produk mendukung jalur enumerasi database yang dirancang.
+
+B. Database
+[ ] Tabel produk, kategori, flag, dan kredensial tersedia.
+[ ] Data yang ditemukan sesuai dengan akun SSH lab.
+[ ] Database tidak dapat diakses langsung dari host secara default.
+
+C. SSH dan Linux
+[ ] Siswa dapat login sebagai student.
+[ ] User student bukan root dan tidak memiliki hak administrator penuh.
+[ ] Flag user dapat diperoleh pada tahap yang sesuai.
+[ ] Petunjuk privilege escalation dapat ditemukan.
+[ ] Jalur eskalasi bekerja secara konsisten.
+[ ] Flag root tidak dapat dibaca sebelum eskalasi berhasil.
+
+D. Administrator dan Docker
+[ ] Administrator dapat memperoleh shell root di dalam container melalui Docker.
+[ ] Lab tidak memerlukan privileged mode atau Docker socket host.
+[ ] Semua port yang dipublikasikan terdokumentasi.
+[ ] Reset memulihkan keadaan awal.
+[ ] Semua tahapan dapat diuji berulang kali.
+
+======================================================================
+12. URUTAN IMPLEMENTASI
+======================================================================
+
+1. Buat Docker Compose dan pastikan Django, PostgreSQL, serta SSH berjalan.
+2. Buat skema database dan data produk awal.
+3. Implementasikan login Django yang sengaja rentan SQL Injection.
+4. Implementasikan kategori produk dan jalur enumerasi database.
+5. Buat akun Linux student dan cocokkan kredensial dengan data database.
+6. Bangun satu jalur privilege escalation yang teruji.
+7. Tambahkan empat flag pada lokasi dan permission yang benar.
+8. Implementasikan akses root administrator melalui Docker.
+9. Implementasikan prosedur reset.
+10. Jalankan pengujian end-to-end dari login hingga root.
+11. Lengkapi README dengan setup, penggunaan, pengujian, reset, dan troubleshooting.
+
+======================================================================
+13. DOKUMENTASI YANG WAJIB DISEDIAKAN
+======================================================================
+
+README.md:
+- Ringkasan dan tujuan lab.
+- Persyaratan software.
+- Cara build dan menjalankan.
+- Port web dan SSH.
+- Cara masuk ke container sebagai administrator.
+- Cara menghentikan dan mereset lab.
+- Peringatan bahwa lab sengaja rentan.
+
+docs/architecture.md:
+- Diagram arsitektur.
+- Peran setiap layanan.
+- Aliran data web ke database dan aliran kredensial ke SSH.
+
+docs/testing.md:
+- Daftar pengujian penerimaan.
+- Cara memastikan semua tahapan dapat direproduksi.
+- Hasil pengujian tanpa membocorkan solusi kepada siswa dalam materi yang dibagikan.
+
+docs/reset.md:
+- Prosedur reset database, file, permission, dan layanan.
+- Penjelasan tentang volume persisten.
+
+======================================================================
+14. HASIL AKHIR YANG DIHARAPKAN
+======================================================================
+
+Proyek dianggap selesai jika tersedia lab Docker Compose yang dapat dibangun dan dijalankan, memiliki alur tantangan berurutan dari SQL Injection hingga root, memiliki empat flag, memungkinkan login SSH menggunakan kredensial yang ditemukan melalui database, menyediakan satu jalur privilege escalation yang dapat direproduksi, dan mempertahankan akses root administrator melalui Docker untuk penyesuaian manual.
+
+Versi pertama harus tetap sederhana, stabil, terisolasi, terdokumentasi, dan dapat di-reset. Tambahkan variasi tantangan hanya setelah seluruh alur utama lolos pengujian end-to-end.

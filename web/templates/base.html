@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CyberLab - SQL Injection to Root Lab{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <a href="{% if request.session.user_id %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="brand">
+            <span class="brand-badge">CTF LAB</span>
+            <span>Enterprise Gateway</span>
+        </a>
+        <nav>
+            {% if request.session.user_id %}
+                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{% url 'products' %}" class="{% if request.resolver_match.url_name == 'products' %}active{% endif %}">Katalog Produk</a>
+                <div class="user-info">
+                    <span class="badge-user">User: {{ request.session.username }}</span>
+                    <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="active">Login Portal</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; CyberLab Security Training &bull; Lingkungan Lab Terisolasi untuk Edukasi</p>
+    </footer>
+</body>
+</html>

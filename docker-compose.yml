@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: sqli_lab_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cyberlab}
+      POSTGRES_USER: ${DB_USER:-labuser}
+      POSTGRES_PASSWORD: ${DB_PASS:-labpassword123}
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    # DB port is intentionally not published to host to enforce internal challenge flow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-labuser} -d ${DB_NAME:-cyberlab}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sqli_lab_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-cyberlab-insecure-django-secret-key-for-ctf-3918237192}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-cyberlab}
+      DB_USER: ${DB_USER:-labuser}
+      DB_PASS: ${DB_PASS:-labpassword123}
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+      - "${SSH_PORT:-2223}:22"
+    networks:
+      - lab-network
+
+networks:
+  lab-network:
+    driver: bridge
+
+volumes:
+  pgdata:

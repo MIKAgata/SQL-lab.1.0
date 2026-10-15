@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment files
+.env
+
+# Database and persistent files
+*.sqlite3
+*.log
+
+# OS generated
+.DS_Store
+Thumbs.db

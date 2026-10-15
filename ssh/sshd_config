@@ -1,0 +1,25 @@
+# OpenSSH Server Configuration for CyberLab Target
+Port 22
+ListenAddress 0.0.0.0
+Protocol 2
+
+# Security restriction: Root login is strictly disabled via SSH
+PermitRootLogin no
+
+# Allow password authentication for student
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+
+# Challenge-response authentication
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+
+# Session setup
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+AcceptEnv LANG LC_*
+
+# Subsystem
+Subsystem sftp /usr/lib/openssh/sftp-server
